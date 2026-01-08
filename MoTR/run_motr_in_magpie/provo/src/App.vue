@@ -340,7 +340,7 @@ export default {
   }
   .oval-cursor.grow {
     width: 102px;
-    height: 38px;
+    height: 50px;
     border-radius: 50%;
     box-shadow: 30px 0 8px -4px rgba(255, 255, 255, 0.1), -30px 0 8px -4px rgba(255, 255, 255, 0.1);
     background-color: rgba(255, 255, 255, 0.3);
