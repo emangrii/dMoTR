@@ -100,7 +100,7 @@
           </form>
           <div class="oval-cursor"></div>
           <template>
-            <div v-if="showFirstDiv" class="readingText" @mousemove="moveCursor" @mouseleave="changeBack">
+            <div v-if="showFirstDiv" class="readingText" @click="handleClick" @mousemove="moveCursor">
               <template v-for="(word, index) of trial.text.split(' ')">
                 <span :key="index" :data-index="index" >
                   {{ word }}
@@ -194,6 +194,29 @@ export default {
     setInterval(this.saveData, 50);
     },
   methods: {
+    handleClick(e) {
+      this.isCursorMoving = true;
+      this.$el.querySelector(".oval-cursor").classList.add('grow');
+      let x = e.clientX;
+      let y = e.clientY;
+      const elementAtCursor = document.elementFromPoint(x, y).closest('span');
+      if (elementAtCursor) {
+        this.$el.querySelector(".oval-cursor").classList.remove('blank');
+        this.currentIndex = elementAtCursor.getAttribute('data-index');
+      } else {
+        this.$el.querySelector(".oval-cursor").classList.add('blank');
+        const elementAboveCursor = document.elementFromPoint(x, y - 3).closest('span');
+        if (elementAboveCursor) {
+          this.currentIndex = elementAboveCursor.getAttribute('data-index');
+        } else {
+          this.currentIndex = -1;
+        }
+      }
+      this.$el.querySelector(".oval-cursor").style.left = `${x + 30}px`;
+      this.$el.querySelector(".oval-cursor").style.top = `${y - 6}px`;
+      this.mousePosition.x = e.clientX;
+      this.mousePosition.y = e.clientY;
+    },
     changeBack() {
       this.$el.querySelector(".oval-cursor").classList.remove('grow');
       this.$el.querySelector(".oval-cursor").classList.remove('blank');
@@ -204,6 +227,8 @@ export default {
           const currentElement = this.$el.querySelector(`span[data-index="${this.currentIndex}"]`);
           if (currentElement) {
             const currentElementRect = currentElement.getBoundingClientRect();
+            const wordCenterX = (currentElementRect.left + currentElementRect.right) / 2;
+            const wordCenterY = (currentElementRect.top + currentElementRect.bottom) / 2;
             $magpie.addTrialData({
               Experiment: this.$el.querySelector(".experiment_id").value,
               Condition: this.$el.querySelector(".condition_id").value,
@@ -215,11 +240,13 @@ export default {
               wordPositionTop: currentElementRect.top,
               wordPositionLeft: currentElementRect.left,
               wordPositionBottom: currentElementRect.bottom,
-              wordPositionRight: currentElementRect.right
+              wordPositionRight: currentElementRect.right,
               // wordPositionTop: currentElement.offsetTop,
               // wordPositionLeft: currentElement.offsetLeft,
               // wordPositionBottom: currentElement.offsetHeight + currentElement.offsetTop,
               // wordPositionRight: currentElement.offsetWidth + currentElement.offsetLeft
+              wordCenterX,
+              wordCenterY
           });
         } else {
           $magpie.addTrialData({
@@ -230,34 +257,16 @@ export default {
               mousePositionX: this.mousePosition.x,
               mousePositionY: this.mousePosition.y,
           });
-          
+
         }
       }},
     moveCursor(e) {
-      this.isCursorMoving = true;
-      this.$el.querySelector(".oval-cursor").classList.add('grow');
       let x = e.clientX;
       let y = e.clientY;
-      const elementAtCursor= document.elementFromPoint(x, y).closest('span');
-      if (elementAtCursor){
-        this.$el.querySelector(".oval-cursor").classList.remove('blank');
-        this.currentIndex = elementAtCursor.getAttribute('data-index');
-      } else {
-        this.$el.querySelector(".oval-cursor").classList.add('blank');
-        const elementAboveCursor = document.elementFromPoint(x, y-3).closest('span');
-        if (elementAboveCursor){
-          this.currentIndex = elementAboveCursor.getAttribute('data-index');
-        } else {
-          this.currentIndex = -1;
-        }
-      }
-      
-      this.$el.querySelector(".oval-cursor").style.left = `${x+12}px`;
-      this.$el.querySelector(".oval-cursor").style.top = `${y-6}px`;
+      this.$el.querySelector(".oval-cursor").style.left = `${x + 30}px`;
+      this.$el.querySelector(".oval-cursor").style.top = `${y - 6}px`;
       this.mousePosition.x = e.clientX;
       this.mousePosition.y = e.clientY;
-      // this.mousePosition.x = e.offsetX;
-      // this.mousePosition.y = e.offsetY;
     },
     toggleDivs() {
     this.showFirstDiv = !this.showFirstDiv;
@@ -293,6 +302,7 @@ export default {
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 100%;
   }
   .main_screen {
     isolation: isolate;
@@ -316,6 +326,8 @@ export default {
     padding-bottom: 2%;
     padding-left: 11%;
     padding-right: 11%;
+    font-size: 14px;
+    font-family: 'courier new', monospace;
   }
   button {
     position: absolute;
@@ -335,11 +347,11 @@ export default {
     transition: width 0.5s, height 0.5s;
   } 
   .oval-cursor.grow.blank {
-    width: 80px;
-    height: 13px;
+    width: 120px;
+    height: 18px;
   }
   .oval-cursor.grow {
-    width: 102px;
+    width: 120px;
     height: 38px;
     border-radius: 50%;
     box-shadow: 30px 0 8px -4px rgba(255, 255, 255, 0.1), -30px 0 8px -4px rgba(255, 255, 255, 0.1);
@@ -355,8 +367,8 @@ export default {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 70%;
-    height: 70%;
+    width: 72%;
+    height: 72%;
     background-color: white;
     mix-blend-mode: normal;
     border-radius: 50%;
@@ -371,6 +383,8 @@ export default {
     padding-bottom: 2%;
     padding-left: 11%;
     padding-right: 11%;
+    font-size: 14px;
+    font-family: 'courier new', monospace;
   }
 
   * {
