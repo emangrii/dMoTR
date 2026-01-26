@@ -263,7 +263,7 @@ export default {
     moveCursor(e) {
       let x = e.clientX;
       let y = e.clientY;
-      this.$el.querySelector(".oval-cursor").style.left = `${x + 30}px`;
+      this.$el.querySelector(".oval-cursor").style.left = `${x + 60}px`;
       this.$el.querySelector(".oval-cursor").style.top = `${y - 6}px`;
       this.mousePosition.x = e.clientX;
       this.mousePosition.y = e.clientY;
@@ -326,7 +326,7 @@ export default {
     padding-bottom: 2%;
     padding-left: 11%;
     padding-right: 11%;
-    font-size: 14px;
+    font-size: 20px;
     font-family: 'courier new', monospace;
   }
   button {
@@ -347,12 +347,12 @@ export default {
     transition: width 0.5s, height 0.5s;
   } 
   .oval-cursor.grow.blank {
-    width: 120px;
-    height: 18px;
+    width: 210px;
+    height: 30px;
   }
   .oval-cursor.grow {
-    width: 120px;
-    height: 38px;
+    width: 180px;
+    height: 60px;
     border-radius: 50%;
     box-shadow: 30px 0 8px -4px rgba(255, 255, 255, 0.1), -30px 0 8px -4px rgba(255, 255, 255, 0.1);
     background-color: rgba(255, 255, 255, 0.3);
@@ -383,7 +383,7 @@ export default {
     padding-bottom: 2%;
     padding-left: 11%;
     padding-right: 11%;
-    font-size: 14px;
+    font-size: 20px;
     font-family: 'courier new', monospace;
   }
 
