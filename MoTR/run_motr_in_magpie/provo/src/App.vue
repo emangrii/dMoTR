@@ -100,7 +100,7 @@
           </form>
           <div class="oval-cursor"></div>
           <template>
-            <div v-if="showFirstDiv" class="readingText" @click="handleClick" @mousemove="moveCursor">
+            <div v-if="showFirstDiv" class="readingText" @mousedown="handleClick" @mouseup="changeBack" @mousemove="changeBack, moveCursor">      <!-- This line commences data recording within a trial -->
               <template v-for="(word, index) of trial.text.split(' ')">
                 <span :key="index" :data-index="index" >
                   {{ word }}
@@ -179,6 +179,7 @@ export default {
     });
     return {
       isCursorMoving: false,
+      isMouseHeldDown: false,               //Tracks whether the mouse is currently being held down, activated by handleClick, deactivated by changeBack
       trials: updatedTrials,
       currentIndex: null,
       showFirstDiv: true,
@@ -196,16 +197,17 @@ export default {
   methods: {
     handleClick(e) {
       this.isCursorMoving = true;
-      this.$el.querySelector(".oval-cursor").classList.add('grow');
+      this.isMouseHeldDown = true;
+      this.$el.querySelector(".oval-cursor").classList.add('grow');             //Reveals text by growing the oval cursor
       let x = e.clientX;
       let y = e.clientY;
-      const elementAtCursor = document.elementFromPoint(x, y).closest('span');
-      if (elementAtCursor) {
+      const elementAtCursor = document.elementFromPoint(x, y).closest('span');  //Checks whether the mouse is over a word
+      if (elementAtCursor) {                                                    //If the mouse is over a word, get the index of that word
         this.$el.querySelector(".oval-cursor").classList.remove('blank');
         this.currentIndex = elementAtCursor.getAttribute('data-index');
       } else {
         this.$el.querySelector(".oval-cursor").classList.add('blank');
-        const elementAboveCursor = document.elementFromPoint(x, y - 3).closest('span');
+        const elementAboveCursor = document.elementFromPoint(x, y - 3).closest('span');  //Checks whether the mouse is over a word
         if (elementAboveCursor) {
           this.currentIndex = elementAboveCursor.getAttribute('data-index');
         } else {
@@ -217,12 +219,15 @@ export default {
       this.mousePosition.x = e.clientX;
       this.mousePosition.y = e.clientY;
     },
-    changeBack() {
-      this.$el.querySelector(".oval-cursor").classList.remove('grow');
-      this.$el.querySelector(".oval-cursor").classList.remove('blank');
-      this.currentIndex = null;
+    changeBack() {                                                           //Hides text by shrinking the oval cursor
+      if (this.isMouseHeldDown) {
+        this.$el.querySelector(".oval-cursor").classList.remove('grow');
+        this.$el.querySelector(".oval-cursor").classList.remove('blank');
+        this.currentIndex = null;
+        this.isMouseHeldDown = false;
+      }
     },
-    saveData() {
+    saveData() {                                                                        //Saves X and Y coordinates of mouse and word position every 50ms
         if (this.currentIndex !== null) {
           const currentElement = this.$el.querySelector(`span[data-index="${this.currentIndex}"]`);
           if (currentElement) {
