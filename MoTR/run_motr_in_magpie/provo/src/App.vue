@@ -100,7 +100,7 @@
           </form>
           <div class="oval-cursor"></div>
           <template>
-            <div v-if="showFirstDiv" class="readingText" @mousedown="handleClick" @mouseup="changeBack" @mousemove="changeBack, moveCursor">      <!-- This line commences data recording within a trial -->
+            <div v-if="showFirstDiv" class="readingText" :class="{ 'no-cursor' : isGrabbing }" @mousedown="handleClick" @mouseup="changeBack" @mousemove="changeBack, moveCursor">      <!-- This line commences data recording within a trial -->
               <template v-for="(word, index) of trial.text.split(' ')">
                 <span :key="index" :data-index="index" >
                   {{ word }}
@@ -183,6 +183,10 @@ export default {
       trials: updatedTrials,
       currentIndex: null,
       showFirstDiv: true,
+      ovalTop: 0,
+      ovalLeft: 0,
+      isGrabbing: false, 
+      text: '',
       // currentItem: null,
       mousePosition: {
           x: 0,
@@ -196,6 +200,7 @@ export default {
     },
   methods: {
     handleClick(e) {
+      this.isGrabbing = true;
       this.isCursorMoving = true;
       this.isMouseHeldDown = true;
       this.$el.querySelector(".oval-cursor").classList.add('grow');             //Reveals text by growing the oval cursor
@@ -220,6 +225,7 @@ export default {
       this.mousePosition.y = e.clientY;
     },
     changeBack() {                                                           //Hides text by shrinking the oval cursor
+      this.isGrabbing = false;
       if (this.isMouseHeldDown) {
         this.$el.querySelector(".oval-cursor").classList.remove('grow');
         this.$el.querySelector(".oval-cursor").classList.remove('blank');
@@ -334,6 +340,11 @@ export default {
     font-size: 22px;
     font-family: 'courier new', monospace;
   }
+
+  .no-cursor { 
+  cursor: none;
+  }
+
   button {
     position: absolute;
     bottom: 0;
