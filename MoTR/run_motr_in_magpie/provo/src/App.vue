@@ -100,7 +100,7 @@
           </form>
           <div class="oval-cursor"></div>
           <template>
-            <div v-if="showFirstDiv" class="readingText" :class="{ 'no-cursor' : isGrabbing }" @mousedown="handleClick" @mouseup="changeBack" @mousemove="changeBack, moveCursor">      <!-- This line commences data recording within a trial -->
+            <div v-if="showFirstDiv" class="readingText" :class="{ 'no-cursor' : isGrabbing }" @mousedown="handleClick">      <!-- This line commences data recording within a trial -->
               <template v-for="(word, index) of trial.text.split(' ')">
                 <span :key="index" :data-index="index" >
                   {{ word }}
@@ -203,6 +203,11 @@ export default {
       this.isGrabbing = true;
       this.isCursorMoving = true;
       this.isMouseHeldDown = true;
+
+      window.addEventListener('mousemove', this.moveCursor);
+      window.addEventListener('mouseup', this.changeBack);
+
+
       this.$el.querySelector(".oval-cursor").classList.add('grow');             //Reveals text by growing the oval cursor
       let x = e.clientX;
       let y = e.clientY;
@@ -232,6 +237,9 @@ export default {
         this.currentIndex = null;
         this.isMouseHeldDown = false;
       }
+      window.removeEventListener('mousemove', this.moveCursor);
+      window.removeEventListener('mouseup', this.changeBack);
+    
     },
     saveData() {                                                                        //Saves X and Y coordinates of mouse and word position every 50ms
         if (this.currentIndex !== null) {
@@ -272,10 +280,6 @@ export default {
         }
       }},
     moveCursor(e) {
-      let x = e.clientX;
-      let y = e.clientY;
-      this.$el.querySelector(".oval-cursor").style.left = `${x + 80}px`;
-      this.$el.querySelector(".oval-cursor").style.top = `${y - 6}px`;
       this.mousePosition.x = e.clientX;
       this.mousePosition.y = e.clientY;
     },
