@@ -100,7 +100,7 @@
           </form>
           <div class="oval-cursor"></div>
           <template>
-            <div v-if="showFirstDiv" class="readingText" :class="{ 'no-cursor' : isGrabbing }" @mousedown="handleClick">      <!-- This line commences data recording within a trial -->
+            <div v-if="showFirstDiv" class="readingText" @mousedown="handleClick">      <!-- This line commences data recording within a trial -->
               <template v-for="(word, index) of trial.text.split(' ')">
                 <span :key="index" :data-index="index" >
                   {{ word }}
@@ -200,6 +200,7 @@ export default {
     },
   methods: {
     handleClick(e) {
+      document.body.classList.add('no-cursor');
       this.isGrabbing = true;
       this.isCursorMoving = true;
       this.isMouseHeldDown = true;
@@ -229,7 +230,8 @@ export default {
       this.mousePosition.x = e.clientX;
       this.mousePosition.y = e.clientY;
     },
-    changeBack() {                                                           //Hides text by shrinking the oval cursor
+    changeBack() {       
+      document.body.classList.remove('no-cursor');                                                    //Hides text by shrinking the oval cursor
       this.isGrabbing = false;
       if (this.isMouseHeldDown) {
         this.$el.querySelector(".oval-cursor").classList.remove('grow');
@@ -345,8 +347,9 @@ export default {
     font-family: 'courier new', monospace;
   }
 
-  .no-cursor { 
-  cursor: none;
+  body.no-cursor,
+  body.no-cursor .readingText { 
+    cursor: none;
   }
 
   button {
