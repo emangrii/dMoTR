@@ -257,7 +257,7 @@ export default {
       this.positionDifference.x = e.clientX - this.frozenPosition.x;
       this.positionDifference.y = e.clientY - this.frozenPosition.y;
     },
-    //TODO - add an if statement to check whether the mouse is currently being held down, and only record data if it is. This way we can be sure that we are only recording data when the participant is actively trying to read the text, and not when they are just moving their mouse but can't read any text.
+    //TODO: add an if statement to check whether the mouse is currently being held down, and only record data if it is. This way we can be sure that we are only recording data when the participant is actively trying to read the text, and not when they are just moving their mouse but can't read any text.
     saveData() {                                                                        //Saves X and Y coordinates of mouse and word position every 50ms
         if (this.currentIndex !== null) {
           const currentElement = this.$el.querySelector(`span[data-index="${this.currentIndex}"]`);
