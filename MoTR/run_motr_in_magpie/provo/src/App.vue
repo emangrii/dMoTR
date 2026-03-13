@@ -98,6 +98,7 @@
             <input type="hidden" class="experiment_id" :value="trial.experiment_id">
             <input type="hidden" class="condition_id" :value="trial.condition_id">
           </form>
+          <div class="focal-point" :style="{ left: mousePosition.x + 'px', top: mousePosition.y + 'px' }" @mousemove="moveCursor"></div>
           <div class="oval-cursor"></div>
           <template>
             <div v-if="showFirstDiv" class="readingText" @mousedown="handleClick">      <!-- This line commences data recording within a trial -->
@@ -111,7 +112,7 @@
               {{trial.text}}
             </div>
           </template>
-          <button v-if="showFirstDiv" style= "bottom:40%; transform: translate(-50%, -50%)" @click="toggleDivs" :disabled="!isCursorMoving">
+          <button v-if="showFirstDiv" style= "bottom:40%; transform: translate(-50%, -50%)" @click="toggleDivs">
           Done
           </button>
 
@@ -178,7 +179,7 @@ export default {
       }
     });
     return {
-      isCursorMoving: false,
+      isCursorMoving: true,
       isMouseHeldDown: false,               //Tracks whether the mouse is currently being held down, activated by handleClick, deactivated by changeBack
       trials: updatedTrials,
       currentIndex: null,
@@ -192,6 +193,14 @@ export default {
           x: 0,
           y: 0,
         },
+      frozenPosition: {
+        x: 0,
+        y: 0,
+      },
+      positionDifference: {
+        x: 0,
+        y: 0,
+      },
   }},
   computed: {
   },
@@ -202,16 +211,17 @@ export default {
     handleClick(e) {
       document.body.classList.add('no-cursor');
       this.isGrabbing = true;
-      this.isCursorMoving = true;
+      this.isCursorMoving = false;
       this.isMouseHeldDown = true;
-
-      window.addEventListener('mousemove', this.moveCursor);
+      this.frozenPosition.x = this.mousePosition.x;
+      this.frozenPosition.y = this.mousePosition.y;
+      window.removeEventListener('mousemove', this.moveCursor);
       window.addEventListener('mouseup', this.changeBack);
 
 
       this.$el.querySelector(".oval-cursor").classList.add('grow');             //Reveals text by growing the oval cursor
-      let x = e.clientX;
-      let y = e.clientY;
+      let x = this.mousePosition.x;
+      let y = this.mousePosition.y;
       const elementAtCursor = document.elementFromPoint(x, y).closest('span');  //Checks whether the mouse is over a word
       if (elementAtCursor) {                                                    //If the mouse is over a word, get the index of that word
         this.$el.querySelector(".oval-cursor").classList.remove('blank');
@@ -227,8 +237,6 @@ export default {
       }
       this.$el.querySelector(".oval-cursor").style.left = `${x + 65}px`;
       this.$el.querySelector(".oval-cursor").style.top = `${y - 6}px`;
-      this.mousePosition.x = e.clientX;
-      this.mousePosition.y = e.clientY;
     },
     changeBack() {       
       document.body.classList.remove('no-cursor');                                                    //Hides text by shrinking the oval cursor
@@ -238,11 +246,18 @@ export default {
         this.$el.querySelector(".oval-cursor").classList.remove('blank');
         this.currentIndex = null;
         this.isMouseHeldDown = false;
+
+        this.mousePosition.x = this.frozenPosition.x;
+        this.mousePosition.y = this.frozenPosition.y;
+
+        this.isCursorMoving = true;  
       }
-      window.removeEventListener('mousemove', this.moveCursor);
+      window.addEventListener('mousemove', this.moveCursor);
       window.removeEventListener('mouseup', this.changeBack);
-    
+      this.positionDifference.x = e.clientX - this.frozenPosition.x;
+      this.positionDifference.y = e.clientY - this.frozenPosition.y;
     },
+    //TODO - add an if statement to check whether the mouse is currently being held down, and only record data if it is. This way we can be sure that we are only recording data when the participant is actively trying to read the text, and not when they are just moving their mouse but can't read any text.
     saveData() {                                                                        //Saves X and Y coordinates of mouse and word position every 50ms
         if (this.currentIndex !== null) {
           const currentElement = this.$el.querySelector(`span[data-index="${this.currentIndex}"]`);
@@ -282,12 +297,24 @@ export default {
         }
       }},
     moveCursor(e) {
-      this.mousePosition.x = e.clientX;
-      this.mousePosition.y = e.clientY;
+      if (this.isCursorMoving) {
+        if (this.positionDifference.x > 0 || this.positionDifference.y > 0) {  // If the mouse has moved since the last time it was frozen, update the frozen position to the current position of the mouse
+          this.mousePosition.x = e.clientX - this.positionDifference.x;  // Applies a smoothing effect to the cursor movement
+          this.mousePosition.y = e.clientY - this.positionDifference.y;  // Applies a smoothing effect to the cursor movement
+        } else if (this.positionDifference.x < 0 || this.positionDifference.y < 0) {
+          this.mousePosition.x = e.clientX + this.positionDifference.x;  // Applies a smoothing effect to the cursor movement
+          this.mousePosition.y = e.clientY + this.positionDifference.y;  // Applies a smoothing effect to the cursor movement
+        } else {                                                                // If the mouse has not moved since the last time it was frozen, keep the cursor in the same position
+          this.mousePosition.x = e.clientX;
+          this.mousePosition.y = e.clientY;
+        }
+      } else {
+        this.mousePosition.x = this.frozenPosition.x;
+        this.mousePosition.y = this.frozenPosition.y;
+      }
     },
     toggleDivs() {
     this.showFirstDiv = !this.showFirstDiv;
-    this.isCursorMoving = false;
     },
    //  async turnOnFullScreen() {
 //       if (!document.fullscreenElement) {
@@ -356,6 +383,16 @@ export default {
     position: absolute;
     bottom: 0;
     left: 50%;
+  }
+  .focal-point {
+    width: 10px;
+    height: 10px;
+    background-color: red;
+    border-radius: 50%;
+    position: fixed;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    z-index: 100;
   }
   .oval-cursor {
     position: fixed;
